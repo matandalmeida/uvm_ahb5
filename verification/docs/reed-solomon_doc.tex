@@ -1,0 +1,330 @@
+\documentclass[a4paper]{article}
+
+\usepackage[a4paper, left=2.5cm, right=2cm]{geometry} % A4 paper size and thin margins
+
+\usepackage[table,xcdraw]{xcolor} % Required for specifying custom colours
+\definecolor{grey}{rgb}{0.9,0.9,0.9} % Colour of the box surrounding the title
+\definecolor{LightBlue}{rgb}{0.69,0.768,0.95} % Colour of the box surrounding the title
+
+\usepackage[utf8]{inputenc} % Required for inputting international characters
+\usepackage[T1]{fontenc} % Output font encoding for international characters
+%\usepackage[sfdefault]{ClearSans} % Use the Clear Sans font (sans serif)
+\usepackage{XCharter} % Use the XCharter font (serif)
+
+\usepackage{graphicx}
+\usepackage{draftwatermark} % adds draft watermark
+\SetWatermarkLightness{0.85}
+\SetWatermarkText{Confidencial}
+\SetWatermarkScale{0.7}
+
+\usepackage{vhistory}
+
+\usepackage{indentfirst}
+\usepackage{longtable}
+
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\rhead{\leftmark}
+\lhead{Guia de Verificação - Bloco reed-solomon}
+
+\usepackage[portuguese]{babel}
+
+\usepackage{adjustbox}
+\usepackage{multirow}
+\usepackage{listings}
+
+
+\begin{document}
+
+%----------------------------------------------------------------------------------------
+%   TITLE PAGE
+%----------------------------------------------------------------------------------------
+
+\begin{titlepage} % Suppresses displaying the page number on the title page and the subsequent page counts as page 1
+    
+    
+    
+    %------------------------------------------------
+    %   Grey title box
+    %------------------------------------------------
+    
+    \begin{figure}
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=0.9\textwidth]{logo.jpg} % first figure itself
+    \end{minipage}\hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=0.9\textwidth]{logo_virtus.png} % second figure itself
+    \end{minipage}
+\end{figure}
+    
+    \vspace{8cm}
+        \parbox[t]{0.93\textwidth}{ % Outer full width box
+            \parbox[t]{0.91\textwidth}{ % Inner box for inner right text margin
+                \raggedleft % Right align the text
+                \fontsize{36pt}{40pt}\selectfont % Title font size, the first argument is the font size and the second is the line spacing, adjust depending on title length
+                \vspace{0.7cm} % Space between the start of the title and the rs_top of the grey box
+                
+                \textbf{Guia de Verificação \\
+                Bloco reed-solomon}
+                
+                \vspace{0.7cm} % Space between the end of the title and the bottom of the grey box
+            }
+        }
+    
+    \vfill % Space between the title box and author information
+    
+    %------------------------------------------------
+    %   Author name and information
+    %------------------------------------------------
+    
+    \parbox[t]{0.93\textwidth}{ % Box to inset this section slightly
+    
+        \raggedleft % Right align the text
+        \hfill\rule{0.2\linewidth}{1pt} \\[4pt]% Horizontal line, first argument width, second thickness
+        \large % Increase the font size
+        {\Large Laboratório de Excelência em Microeletrônica}\\[4pt] % Extra space after name
+        Virtus\\
+        Universidade Federal de Campina Grande\\[4pt] % Extra space before URL
+
+        \hfill\rule{0.2\linewidth}{1pt}% Horizontal line, first argument width, second thickness
+    }
+    
+\end{titlepage}
+
+\title{Guia de Verificação - Bloco reed-solomon}
+%---------------------------------------------------------------------------------------
+
+
+    
+\pagebreak
+\hspace{0pt}
+\vfill
+\begin{center}
+\hfill\rule{\linewidth}{1pt} \\[4pt]
+    Este é um documento \textbf{CONFIDENCIAL} \\
+    é vetado qualquer reprodução ou divulgação não autorizada.\\[4pt]
+    \hfill\rule{\linewidth}{1pt} \\[4pt]
+\end{center}
+\vfill
+\hspace{0pt}
+\pagebreak
+
+%---------------------------------------------------------------------------------------
+
+% Start of the revision history table
+\begin{versionhistory}
+  \vhEntry{1.0}{10.02.19}{José Iuri}{created}
+\end{versionhistory}
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+\section{Introdução}
+\subsection{Objetivos}
+
+\par
+Esse relatório tem o objetivo de apresentar o desenvolvimento de uma arquitetura de \textit{testbench} para a verificação funcional baseada na metodologia UVM do bloco reed-solomon.
+
+\subsection{Temos Utilizados}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|}
+\hline
+\rowcolor[HTML]{27378F} 
+{\color[HTML]{FFFFFF} Termo} & {\color[HTML]{FFFFFF} Significado} \\ \hline
+DUT                          & Device Under Test                  \\ \hline
+UVM                          & Universal Verification Methodology \\ \hline
+RM                           & Reference Model                    \\ \hline
+RTL                          & Register Transfer Model            \\ \hline
+\end{tabular}
+\end{table}
+
+
+\subsection{Nomenclaturas e Representação de Bits e Amostras}
+
+\begin{table}[h]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|
+>{\columncolor[HTML]{27378F}}c |l|l|l|}
+\hline
+\cellcolor[HTML]{27378F}{\color[HTML]{FFFFFF} }                                                                                       & MSS   & Most Significant Sample                                                                             &                                                                                                                                     \\ \cline{2-3}
+\multirow{-2}{*}{\cellcolor[HTML]{27378F}{\color[HTML]{FFFFFF} Sample Representation}}                                                & LSS   & Least Significant Sample                                                                            & \multirow{-2}{*}{(MSS:LSS)}                                                                                                         \\ \hline
+\cellcolor[HTML]{27378F}{\color[HTML]{FFFFFF} }                                                                                       & MSB   & Most Significant Bit                                                                                &                                                                                                                                     \\ \cline{2-3}
+\multirow{-2}{*}{\cellcolor[HTML]{27378F}{\color[HTML]{FFFFFF} Bit Representation}}                                                   & LSB   & Least Significant Bit                                                                               & \multirow{-2}{*}{{[}MSB:LSB{]}}                                                                                                     \\ \hline
+\cellcolor[HTML]{27378F}{\color[HTML]{FFFFFF} }                                                                                       & NBW   & Total Number of Bits - Word length                                                                  &                                                                                                                                     \\ \cline{2-3}
+\cellcolor[HTML]{27378F}{\color[HTML]{FFFFFF} }                                                                                       & NBI   & Number of Integer portion length                                                                    &                                                                                                                                     \\ \cline{2-3}
+\cellcolor[HTML]{27378F}{\color[HTML]{FFFFFF} }                                                                                       & QUANT & Quantization by default: TRN                                                                        &                                                                                                                                     \\ \cline{2-3}
+\cellcolor[HTML]{27378F}{\color[HTML]{FFFFFF} }                                                                                       & OVFLW & Overflow by default: WRAP                                                                           &                                                                                                                                     \\ \cline{2-3}
+\multirow{-5}{*}{\cellcolor[HTML]{27378F}{\color[HTML]{FFFFFF} \begin{tabular}[c]{@{}c@{}}Fixed Point\\ Representation\end{tabular}}} & NBITS & Number of saturated bits, only used for overflow mode and specifies how many bits will be saturated & \multirow{-5}{*}{\begin{tabular}[c]{@{}l@{}}\textless WL,IWL{[},QUANT{]}\\ {[},OVFLW{]}{[},NBITS{]} \textgreater bits\end{tabular}} \\ \hline
+\cellcolor[HTML]{27378F}{\color[HTML]{FFFFFF} }                                                                                       & '1'   & \multicolumn{2}{l|}{Bit asserted}                                                                                                                                                                                                         \\ \cline{2-4} 
+\cellcolor[HTML]{27378F}{\color[HTML]{FFFFFF} }                                                                                       & '0'   & \multicolumn{2}{l|}{Bit de-asserted}                                                                                                                                                                                                      \\ \cline{2-4} 
+\cellcolor[HTML]{27378F}{\color[HTML]{FFFFFF} }                                                                                       & 'x'   & \multicolumn{2}{l|}{Bit don't care}                                                                                                                                                                                                       \\ \cline{2-4} 
+\cellcolor[HTML]{27378F}{\color[HTML]{FFFFFF} }                                                                                       & R     & \multicolumn{2}{l|}{Readable bit}                                                                                                                                                                                                         \\ \cline{2-4} 
+\cellcolor[HTML]{27378F}{\color[HTML]{FFFFFF} }                                                                                       & W     & \multicolumn{2}{l|}{Writable bit}                                                                                                                                                                                                         \\ \cline{2-4} 
+\cellcolor[HTML]{27378F}{\color[HTML]{FFFFFF} }                                                                                       & U     & \multicolumn{2}{l|}{Unimplemented bit, read as 0/1/x}                                                                                                                                                                                     \\ \cline{2-4} 
+\multirow{-7}{*}{\cellcolor[HTML]{27378F}{\color[HTML]{FFFFFF} Logic Values}}                                                         & -n    & \multicolumn{2}{l|}{Value at POR}                                                                                                                                                                                                         \\ \hline
+\end{tabular}%
+}
+\end{table}
+
+\subsection{Referências}
+
+\pagebreak
+
+
+\section{DUT}
+
+\subsection{Descrição}
+
+Xxxxx xxxxxxx.
+
+
+\subsection{Funcionalidades}
+
+\begin{itemize}
+    \item xxxxxxxxx;
+    \item yyyyyy;
+    \begin{itemize}
+        \item zzzzzzzzzzz;
+    \end{itemize}
+\end{itemize}
+
+\subsection{Parâmetros}
+
+\begin{longtable}{|l|l|l|l|}
+\hline
+\rowcolor[HTML]{27378F} 
+{\color[HTML]{FFFFFF} Parâmetro} & {\color[HTML]{FFFFFF} Tipo} & {\color[HTML]{FFFFFF} Valor padrão} & {\color[HTML]{FFFFFF} Descrição}                                                                                        \\ \hline
+NBW\_OUT                         & integer                     & 8                                   & Número de bits de saída.                                                                                       \\ \hline
+\end{longtable}
+
+\subsection{Interface}
+
+% Please add the following required packages to your document preamble:
+% \usepackage{graphicx}
+% \usepackage[table,xcdraw]{xcolor}
+% If you use beamer only pass "xcolor=table" option, i.e. \documentclass[xcolor=table]{beamer}
+\begin{table}[h]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+\rowcolor[HTML]{27378F} 
+\multicolumn{1}{|c|}{\cellcolor[HTML]{27378F}{\color[HTML]{FFFFFF} Sinal}} & \multicolumn{1}{c|}{\cellcolor[HTML]{27378F}{\color[HTML]{FFFFFF} Tamanho}} & \multicolumn{1}{c|}{\cellcolor[HTML]{27378F}{\color[HTML]{FFFFFF} I/O}} & \multicolumn{1}{c|}{\cellcolor[HTML]{27378F}{\color[HTML]{FFFFFF} Sync}} & \multicolumn{1}{c|}{\cellcolor[HTML]{27378F}{\color[HTML]{FFFFFF} Descrição}}                                                                                                                                           \\ \hline
+rst\_async\_n                                                              & 1                                                                           & I                                                                       & Async                                                                    & Reset, assíncrono e BAIXO ativo                                                                                                                                                                                         \\ \hline
+clk                                                                        & 1                                                                           & I                                                                       & clk                                                                      & Clock funcional                                                                                                                                                                                                         \\ \hline
+\end{tabular}%
+}
+\end{table}
+
+\pagebreak
+
+\section{Arquitetura Proposta}
+
+Um conjunto de testes foi desenvolvido no intuito de verificar as funcionalidades do bloco de forma isolada. Os testes são aplicados por meio de um \textit{testbench} escrito em \textit{Systemverilog} baseado na metodologia UVM ilustrado na Figura \ref{tb}.
+
+\begin{figure}[h]
+    \centering
+        \centering
+        \includegraphics[width=\textwidth]{diagrama.png} % first figure itself
+        \caption{Arquitetura do testbench do reed-solomon}
+        \label{tb}
+\end{figure}
+
+\subsection{Arquitetura do \textit{testbench}}
+
+\begin{itemize}
+    \item Top
+    
+        O nível superior do testbench cria instâncias do teste a ser executado, o DUT, o RM e a interface contendo os sinais que conduzirão valores de/para o DUT e o RM e os demais compontentes do ambiente UVM criado.
+        
+    \item DUT
+    
+        
+        
+        \newpage
+        
+    \item RM
+    
+        
+        
+    \item Comparador
+    
+        
+        
+    \item Inteface
+    
+        
+    
+    \item agent\_in
+        
+        
+        
+    \item agent\_out
+        
+        
+    
+    \item Test
+        
+        
+    
+\end{itemize}
+
+\subsection{Execução do \textit{Testbench}}
+
+O ambiente de verificação pode ser obtido em:
+
+\vspace{5pt}
+
+\lstset{language=bash}
+\begin{lstlisting}[backgroundcolor=\color{grey}][basicstyle=\small]
+commit 3213213213546510321358465 (origin/reed-solomon/Verification/tb)
+Author: Fulano Silva <fulano.silva@embedded.ufcg.edu.br>
+Date:   Tue Feb 12 11:11:04 2019 -0300
+
+    Ultimo commit funcional.
+
+\end{lstlisting}
+
+\vspace{5pt}
+
+Para rodar a simulação executar o Makefile. As opções de execução podem ser checadas no README.
+
+\vspace{5pt}
+
+
+\lstset{language=bash}
+\begin{lstlisting}[backgroundcolor=\color{grey}][basicstyle=\small]
+options:
+
+aqui fica o help do arquivo de README.
+
+\end{lstlisting}
+
+\vspace{5pt}
+
+\pagebreak
+\section{Testes}
+
+\subsection{Simple Test}
+
+Teste simples com dados aleatórios de entrada de acordo com características previamente configuradas e entradas de configuração fixa.
+ 
+\pagebreak
+
+\section{Resultados}
+
+\subsection{Simple Test}
+
+Resultados.
+
+\end{document}

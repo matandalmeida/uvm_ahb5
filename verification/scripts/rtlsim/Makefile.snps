@@ -1,0 +1,53 @@
+REFMOD = ./encoder.cpp ./decoder.cpp
+
+IFS = ./axi4_lite_if.sv ./rs_refmod_nd_inputs.sv
+
+RTL = ./reedsolomon.sv \
+      ../reedsolomon/encrtl/register_in_if.sv \
+      ../reedsolomon/encrtl/register_out_if.sv\
+      ../reedsolomon/decrtl/basic_ops.sv \
+      ../reedsolomon/encrtl/rsenc.sv \
+      ../reedsolomon/encrtl/rsenc_control.sv \
+      ../reedsolomon/decrtl/syndrome.sv \
+      ../reedsolomon/decrtl/synd.sv \
+      ../reedsolomon/decrtl/Berlekamp_Massey.sv \
+      ../reedsolomon/decrtl/omega.sv \
+      ../reedsolomon/decrtl/CSvalue.sv \
+      ../reedsolomon/decrtl/CSlocation.sv \
+      ../reedsolomon/decrtl/Forney.sv \
+      ../reedsolomon/decrtl/rsdec.sv \
+      ../reedsolomon/ramrtl/ram.sv \
+      ../reedsolomon/ramrtl/datapath_rs.sv \
+      ./nd_monitor.sv
+
+UVM = +UVM_TR_RECORD +UVM_VERBOSITY=HIGH +UVM_TESTNAME=rs_test +vcs+lic+wait
+
+PKGS = ./axi4_types.sv ./pkg.sv
+
+SEED = 100
+
+all: sim run
+
+sim: clean
+	g++ -g -fPIC -Wall -std=c++0x $(REFMOD) -shared -o teste.so
+	vcs -full64 -sverilog $(PKGS) $(IFS) $(RTL) rs_top.sv -ntb_opts uvm -debug_pp -timescale=1ns/10ps teste.so -debug_pp +vcs+vcdpluson +vcs+lic+wait
+
+	./simv $(UVM) +ntb_random_seed=$(SEED)
+clean:
+	rm -rf DVEfiles csrc simv simv.daidir ucli.key .vlogansetup.args .vlogansetup.env .vcs_lib_lock simv.vdb AN.DB vc_hdrs.h *.diag *.vpd *tar.gz external.o teste.so
+
+view_waves:
+	dve -vpd vcdplus.vpd &
+
+view_cover:
+	dve -covdir simv*.vdb &
+
+testes: sim
+	mkdir --parents reports/
+	@for i in `seq 1 10000`; do \
+	  seed=$$((1 + RANDOM % 10000)); \
+	  echo "Running test: " $$i; \
+	  ./simv $(UVM) +ntb_random_seed=$$seed | grep "Mismatch" > reports/$$seed; \
+	  mv simv.vdb reports/simv_$$seed.vdb; \
+	  done;
+

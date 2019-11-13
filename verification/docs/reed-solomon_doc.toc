@@ -1,0 +1,18 @@
+\babel@toc {portuguese}{}
+\contentsline {section}{\numberline {1}Introdu\IeC {\c c}\IeC {\~a}o}{4}% 
+\contentsline {subsection}{\numberline {1.1}Objetivos}{4}% 
+\contentsline {subsection}{\numberline {1.2}Temos Utilizados}{4}% 
+\contentsline {subsection}{\numberline {1.3}Nomenclaturas e Representa\IeC {\c c}\IeC {\~a}o de Bits e Amostras}{4}% 
+\contentsline {subsection}{\numberline {1.4}Refer\IeC {\^e}ncias}{4}% 
+\contentsline {section}{\numberline {2}DUT}{5}% 
+\contentsline {subsection}{\numberline {2.1}Descri\IeC {\c c}\IeC {\~a}o}{5}% 
+\contentsline {subsection}{\numberline {2.2}Funcionalidades}{5}% 
+\contentsline {subsection}{\numberline {2.3}Par\IeC {\^a}metros}{5}% 
+\contentsline {subsection}{\numberline {2.4}Interface}{5}% 
+\contentsline {section}{\numberline {3}Arquitetura Proposta}{6}% 
+\contentsline {subsection}{\numberline {3.1}Arquitetura do \textit {testbench}}{6}% 
+\contentsline {subsection}{\numberline {3.2}Execu\IeC {\c c}\IeC {\~a}o do \textit {Testbench}}{7}% 
+\contentsline {section}{\numberline {4}Testes}{8}% 
+\contentsline {subsection}{\numberline {4.1}Simple Test}{8}% 
+\contentsline {section}{\numberline {5}Resultados}{9}% 
+\contentsline {subsection}{\numberline {5.1}Simple Test}{9}% 
